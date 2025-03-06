@@ -63,16 +63,15 @@ function utcNow() {
 	return Math.floor(Date.now() / 1000);
 }
 
-//~ Mon, Mar 3 4:09PM
-// const lockTime = bip65.encode({ utc: 1740989341 });
-
+//~ Mon, Mar 5 12:04PM
 //Lock time an hour from now
-const lockTime = bip65.encode({ utc: utcNow() + 3600 });
+const lockTime = bip65.encode({ utc: 1741147455 });
+// const lockTime = bip65.encode({ utc: utcNow() + 3600 });
 const redeemScript = cltvCheckSigOutput(alice, bob, lockTime);
 
 //Keep a copy of the lockTime
-console.log('lockTime', lockTime);
-console.log('redeemScript -> ', redeemScript);
+// console.log('lockTime', lockTime);
+// console.log('redeemScript -> ', redeemScript);
 
 const { address } = bitcoin.payments.p2sh({
 	redeem: {
@@ -81,14 +80,21 @@ const { address } = bitcoin.payments.p2sh({
 });
 
 //Fund this address, and copy the transaction id (UTXO)
-console.log('address ->', address);
+// console.log('address ->', address);
 
-//transaction id: 50edc9008afc83fbdac90783bec17daaebcb837883018476833af77bc5b41ff6
-//Balance: 0.00001 BTC = 1,000 sats
-//Amount: 0.000007, gas fees: 0.000003
+/**
+ *
+ * Adress: 3QZdLMbL7cNPB444PcX9hsX5NM7x7rbWZG
+ * Transaction id (UTXO): 6a3abec4a70beb0f0c9d8380354e62424aee08d5b299eb5462af431ff4a68803
+ * Balance: 0.00002000 BTC -> 2,000 Satoshis
+ * Amount to spend: 1,000 Satoshis
+ * Gas fees: 1,000 Satoshis
+ *
+ */
+
 //Replace this UTXO with your own
 const utxo = {
-	txid: '50edc9008afc83fbdac90783bec17daaebcb837883018476833af77bc5b41ff6',
+	txid: '6a3abec4a70beb0f0c9d8380354e62424aee08d5b299eb5462af431ff4a68803',
 	vout: 0,
 };
 
@@ -96,21 +102,21 @@ const tx = new bitcoin.Transaction();
 tx.locktime = lockTime;
 tx.addInput(Buffer.from(utxo.txid, 'hex').reverse(), utxo.vout, 0xfffffffe);
 
-/**
- *
- *
- * ✅ Spending Path 1: Wait for Timeout (CLTV)
- *
- * **/
-
 const recipientAddress = 'bc1qyhrr4gelwscr57tud95urckngzvhymc58tdhjh'; //Alice's p2wpkh address
-const amount = 700;
+const amount = 1000;
 const scriptPubkey = bitcoin.address.toOutputScript(recipientAddress, network);
 
 tx.addOutput(scriptPubkey, amount);
 
 // Alice's signature
 const signatureHash = tx.hashForSignature(0, redeemScript, hashType);
+
+/**
+ *
+ *
+ * ✅ Spending Path 1: Wait for Timeout (CLTV)
+ *
+ * **/
 const redeemScriptSig = bitcoin.payments.p2sh({
 	redeem: {
 		input: bitcoin.script.compile([bitcoin.script.signature.encode(alice.sign(signatureHash), hashType), bitcoin.opcodes.OP_TRUE]),
@@ -118,12 +124,26 @@ const redeemScriptSig = bitcoin.payments.p2sh({
 	},
 }).input;
 
+/**
+ *
+ *
+ * ✅ Script Path 2: Immediate Spend with Bob's signature
+ *
+ * **/
+// const redeemScriptSig = bitcoin.payments.p2sh({
+// 	redeem: {
+// 		input: bitcoin.script.compile([
+// 			bitcoin.script.signature.encode(alice.sign(signatureHash), hashType),
+// 			bitcoin.script.signature.encode(bob.sign(signatureHash), hashType),
+// 			bitcoin.opcodes.OP_FALSE,
+// 		]),
+// 		output: redeemScript,
+// 	},
+// }).input;
+
 // Ensure `redeemScriptSig` is not undefined before setting it
 if (redeemScriptSig) {
 	tx.setInputScript(0, redeemScriptSig);
-	console.log('redeemScriptSig ->', redeemScriptSig);
 } else {
 	console.error('Error: redeemScriptSig is undefined');
 }
-
-console.log('To be broadcast =>', tx.toHex());
