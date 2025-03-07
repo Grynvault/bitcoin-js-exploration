@@ -10,6 +10,7 @@ import bip65 from 'bip65';
 dotenv.config();
 
 const TESTNET = bitcoin.networks.testnet; // Testnet
+// console.log('TESTNET', TESTNET);
 const ECPair = ECPairFactory(ecc);
 
 const aliceBufferedPrivateKey = process.env.TESTNET_ALICE_BUFFERED_PRIVATE_KEY;
@@ -65,12 +66,11 @@ function utcNow() {
 
 //Lock time half an hour from now
 // const lockTime = bip65.encode({ utc: utcNow() + 1800 });
-const lockTime = bip65.encode({ utc: 1741086000 });
+const lockTime = bip65.encode({ utc: 1741327649 });
 const redeemScript = cltvCheckSigOutput(alice, bob, lockTime);
 
 //Keep a copy of the lockTime
 console.log('Save the lockTime', lockTime);
-console.log('redeemScript -> ', redeemScript);
 
 const { address } = bitcoin.payments.p2sh({
 	redeem: {
@@ -85,20 +85,20 @@ console.log('address ->', address);
 
 /***
  * 
- *  Script Address: 2N92tTPSRorooQyEMrDNGiu9eBh9Qh3s2kN
+ *  Script Address: 2N6aSvZ9NSVnCXRRsPxazk1oSvECe2tnVo8
  * 
  * 
  * MAKE SURE TO COMMENT OUT THE REST OF THE CODE BELOW UNTIL YOU GET THE UTXO
  * THEN FILL THE INFORMATION BELOW
  * 
  * 
- * Recent Block Timestamp: 2025-03-04 18:03:01
+ * Recent Block Timestamp: 2025-03-07 12:06:08
  * 
- * Locktime in UNIX Timestamp: 1741081834
- * In UTC Time: Tue Mar 04 2025 17:50:34 GMT+0800 (Malaysia Time)
+ * Locktime in UNIX Timestamp: 1741327649
+ * In UTC Time: Fri Mar 07 2025 14:07:29 GMT+0800 (Malaysia Time)
  * 
- * Transaction Id (UTXO): 758e63855acd148245a944488cad16e6e5735950881ea8698394dc160f3d869e
- * Balance: 0.000050000 tBtc = 5,000 sats
+ * Transaction Id (UTXO): c81daa56d6fdf899cecb67ef540679a1cc13071ce45735060b7344cb98354a08
+ * Balance: 0.00005 tBtc = 5,000 sats
  * Amount to be redeemed: 4,000 sats
  * Gas fees: 1,000 sats
  * 
@@ -114,23 +114,21 @@ console.log('address ->', address);
  * **/
 //Replace this UTXO with your own
 const utxo = {
-	txid: '758e63855acd148245a944488cad16e6e5735950881ea8698394dc160f3d869e',
+	txid: '1f2933553e84372e7c1559c289befebcb1b7157dcf15b884b67d38ffc200ad80',
 	vout: 0,
 };
-
-const tx = new bitcoin.Transaction();
-tx.locktime = lockTime;
-tx.addInput(Buffer.from(utxo.txid, 'hex').reverse(), utxo.vout, 0xfffffffe);
-
 const recipientAddress = 'tb1qmdyklysj3syrs9zsvrekrrd6smgpvc2lm6mpt4'; //Alice's p2wpkh address
-const amount = 4000;
+const amount = 4500;
 const scriptPubkey = bitcoin.address.toOutputScript(recipientAddress, TESTNET);
 
+const tx = new bitcoin.Transaction(TESTNET);
+tx.locktime = lockTime;
+tx.addInput(Buffer.from(utxo.txid, 'hex').reverse(), utxo.vout, 0xfffffffe);
 tx.addOutput(scriptPubkey, amount);
 
 // {Alice's signature} {Bob's signature} OP_FALSE
 const signatureHash = tx.hashForSignature(0, redeemScript, hashType);
-console.log('signatureHash ->', signatureHash);
+// console.log('signatureHash ->', signatureHash);
 
 //Redeem Script Path 1: Wait for Timeout
 // const redeemScriptSig = bitcoin.payments.p2sh({
