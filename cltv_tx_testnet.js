@@ -122,7 +122,7 @@ const amount = 4500;
 const scriptPubkey = bitcoin.address.toOutputScript(recipientAddress, TESTNET);
 
 const tx = new bitcoin.Transaction(TESTNET);
-tx.locktime = lockTime;
+// tx.locktime = lockTime;
 tx.addInput(Buffer.from(utxo.txid, 'hex').reverse(), utxo.vout, 0xfffffffe);
 tx.addOutput(scriptPubkey, amount);
 
