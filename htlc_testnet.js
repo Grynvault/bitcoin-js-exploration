@@ -10,7 +10,6 @@ import bip65 from 'bip65';
 dotenv.config();
 
 const TESTNET = bitcoin.networks.testnet; // Testnet
-// console.log('TESTNET', TESTNET);
 const ECPair = ECPairFactory(ecc);
 
 const aliceBufferedPrivateKey = process.env.TESTNET_ALICE_BUFFERED_PRIVATE_KEY;
@@ -69,6 +68,8 @@ tx.addInput(Buffer.from(utxo.txid, 'hex').reverse(), utxo.vout);
 tx.addOutput(scriptPubkey, amount);
 
 const signatureHash = tx.hashForSignature(0, redeemScript, hashType);
+
+console.log('alice.sign(signatureHash) ->', alice.sign(signatureHash));
 
 const redeemScriptSig = bitcoin.payments.p2sh({
 	redeem: {
