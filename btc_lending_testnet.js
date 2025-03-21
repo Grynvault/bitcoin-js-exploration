@@ -58,6 +58,8 @@ function utcNow() {
 	return Math.floor(Date.now() / 1000);
 }
 
+const unixTimestamp = 1742490883;
+
 /**
  *
  * Initialize HTLC Contract
@@ -68,11 +70,11 @@ function utcNow() {
 
 /////Initializing variables from Client
 //Borrower
-const borrowerPubkey = '03fc4fb7d6afbf0c95d314314950087a94df7a97973e2f7c7b757b8f721ac764ed';
+const borrowerPubkey = '02ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e9758';
 const borrowerBufferedPrivateKey = Buffer.from(borrowerPubkey.toString('hex'), 'hex');
 const borrower = ECPair.fromPublicKey(borrowerBufferedPrivateKey);
 //Locktime
-const lockTime = bip65.encode({ utc: 1742371000 });
+const lockTime = bip65.encode({ utc: unixTimestamp });
 // const lockTime = bip65.encode({ utc: utcNow() + 900 }); //15 mins from now
 console.log('lockTime ->', lockTime);
 //Hash
@@ -102,9 +104,9 @@ console.log('Init HTCL Redeem address ->', address);
 
 /////Initializing variables from Client
 const utxo = {
-	txid: '25def3779bd8ef42c9af9bc9016b72fb467e661fb83a54c9508b785f406cb09a',
+	txid: '2259495573df10603fbf96c15468d73e52a744887c429e466841665c46db8147',
 	vout: 0,
-	value: 17211,
+	value: 34423,
 };
 
 const recipientAddress = 'tb1q3jmfx30rdhglnhvyd7ttt9lr26az3wx26e2hqc'; //Borrower's address
@@ -119,12 +121,16 @@ const psbt = new bitcoin.Psbt({ network: TESTNET });
 psbt.addInput({
 	hash: utxo.txid,
 	index: utxo.vout,
+	sequence: 0xfffffffe, // ← lets you enable nLockTime in the transaction
 	nonWitnessUtxo: Buffer.from(
-		'02000000000101169444dedbf562337d1ad2c4ef8f35f3b4caf5c2fb978b2d61dca87cc99045400000000000ffffffff023b4300000000000017a91414badee1c79ae22bf2724e0cef6f64af7015fdd7878a900000000000002251208dec550f3a6b14a4cd29a3aacc4bf8a6ba12f759f7755ca63bc7fe43bae66d190140d744b7b1d4d9b6b3aedde1c5f80448a137c3665dc45b0f476103453b12cec952e2fd59e299931d13cf86bac0f20eda999735e072f3c159a0b1e923a90484dbe500000000',
+		'02000000000101f6418d7715fad413d3a95819d532266d4e2cbcc1fe0a8e3a1d3c428be9ba59b70000000000ffffffff02778600000000000017a91444a34a57f33cb24dccf375303a670dd1e7f601888730160200000000001600148cb69345e36dd1f9dd846f96b597e356ba28b8ca02473044022020a29ddaf603f265dabe12d7c874ed5b6172fd9b47f97c62ee3050117c0add9702203dc17e62ea8552fb0c54b2fbcb1b98ffafefa1ced9534f292b58d44719ceb10a012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975800000000',
 		'hex',
 	),
 	redeemScript: initHtclRedeemScript,
 });
+
+psbt.setLocktime(lockTime);
+psbt.setInputSequence(0, 0xfffffffe);
 
 /**
  *
@@ -140,12 +146,12 @@ psbt.addOutput({
 	value: amount, // Amount to send (in sats)
 });
 
-/////Signing the transaction using Unisat
+// /////Signing the transaction using Unisat
 console.log('Unsigned PSBT:', psbt.toBase64());
 //Use the pbt.toBase64() to sign with Unisat
 
 const signed =
-	'70736274ff0100520200000001953fcdf8f2191d900fd10a2ba8006793fe842f967ee1c02981d8defa4c202d0a0000000000ffffffff011b400000000000001600148cb69345e36dd1f9dd846f96b597e356ba28b8ca00000000000100c202000000000101169444dedbf562337d1ad2c4ef8f35f3b4caf5c2fb978b2d61dca87cc99045400000000000ffffffff023b4300000000000017a91414badee1c79ae22bf2724e0cef6f64af7015fdd7878a900000000000002251208dec550f3a6b14a4cd29a3aacc4bf8a6ba12f759f7755ca63bc7fe43bae66d190140d744b7b1d4d9b6b3aedde1c5f80448a137c3665dc45b0f476103453b12cec952e2fd59e299931d13cf86bac0f20eda999735e072f3c159a0b1e923a90484dbe500000000220202ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e9758473044022035fc0de3684ad1b87f59e95138271f044abd82a7964074105ba7562ec609334c022039b84a407d337c229b5b7110084f3a5627ae6ecf0032bf9ad0a5e7df117e7aff010104736304d074da67b1752103fc4fb7d6afbf0c95d314314950087a94df7a97973e2f7c7b757b8f721ac764edac67a8207817ded1e17cd65a5ce3c678bfce2461213b43272c4b77426558c6fe8f3726c58821036617e61ead19cf1697fb4a1081f640c5b335cdbb3a6e6c8ad4dcd55c37193052ac680000'; //Signed with Unisat
+	'70736274ff01005202000000014781db465c664168469e427c8844a7523ed76854c196bf3f6010df73554959220000000000feffffff0157830000000000001600148cb69345e36dd1f9dd846f96b597e356ba28b8ca034ddc67000100df02000000000101f6418d7715fad413d3a95819d532266d4e2cbcc1fe0a8e3a1d3c428be9ba59b70000000000ffffffff02778600000000000017a91444a34a57f33cb24dccf375303a670dd1e7f601888730160200000000001600148cb69345e36dd1f9dd846f96b597e356ba28b8ca02473044022020a29ddaf603f265dabe12d7c874ed5b6172fd9b47f97c62ee3050117c0add9702203dc17e62ea8552fb0c54b2fbcb1b98ffafefa1ced9534f292b58d44719ceb10a012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975800000000220202ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e9758483045022100c5a0755d16ffaed442cadbc4252e262c7143abb99043ab1127b063ea8d6f1238022048a3fd892fe08f2582a36e249169c6f8e194a52038ef8c7c8b1834843d5674f8010104736304034ddc67b1752102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e9758ac67a8207817ded1e17cd65a5ce3c678bfce2461213b43272c4b77426558c6fe8f3726c58821036617e61ead19cf1697fb4a1081f640c5b335cdbb3a6e6c8ad4dcd55c37193052ac680000'; //Signed with Unisat
 const signedPsbt = bitcoin.Psbt.fromHex(signed);
 const inputIndex = 0; // Assuming single input
 const partialSig = signedPsbt.data.inputs[inputIndex].partialSig[0].signature;
@@ -153,7 +159,7 @@ console.log('Extracted Signature:', partialSig.toString('hex'));
 
 psbt.finalizeInput(0, (inputIndex, input) => {
 	const scriptSig = bitcoin.payments.p2sh({
-		redeem: { output: initHtclRedeemScript, input: bitcoin.script.compile([partialSig, firstPreimage, bitcoin.opcodes.OP_TRUE]) },
+		redeem: { output: initHtclRedeemScript, input: bitcoin.script.compile([partialSig, bitcoin.opcodes.OP_TRUE]) },
 	});
 
 	return {
