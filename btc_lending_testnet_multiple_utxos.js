@@ -101,31 +101,55 @@ console.log('Init HTCL Redeem address ->', address);
  */
 
 /////Initializing variables from Client
-const utxo = {
-	txid: '25def3779bd8ef42c9af9bc9016b72fb467e661fb83a54c9508b785f406cb09a',
-	vout: 0,
-	value: 17211,
-};
+const txid = '25def3779bd8ef42c9af9bc9016b72fb467e661fb83a54c9508b785f406cb09a';
+
+// List of UTXOs (Replace with real amounts)
+const utxos = [
+	{ vout: 0, value: 29838 },
+	{ vout: 1, value: 22480 },
+	{ vout: 2, value: 22052 },
+	{ vout: 3, value: 21710 },
+	{ vout: 4, value: 21217 },
+	{ vout: 5, value: 18449 },
+	{ vout: 6, value: 16411 },
+	{ vout: 7, value: 15873 },
+	{ vout: 8, value: 15239 },
+];
 
 const recipientAddress = 'tb1q3jmfx30rdhglnhvyd7ttt9lr26az3wx26e2hqc'; //Borrower's address
+
+const previousTxHex =
+	'02000000000109f6d382f919bca3ec502304f8ead8913cbe363d8d7e5c92cdbf846d563a6b5b630100000000fffffffff2f08da420d2e47d3de51553ff2a521f087508aebb2ebdf8f94b1add4ce6b4f20000000000ffffffff2f0d6e73430be7966ec7006484b5ee888bab08837d3242615e64228d03f03ddb0000000000ffffffff9438252611c4f483ee39817030a3c11866be77a286a0a0e6448f8c10d3212b2d0100000000ffffffff33c9c319cb403408c79eb2e94f3a4e0333e74e604604374471a5d7e0212f74310100000000ffffffff963bcc7241785618bd453c4be4c1474ebc3d4aa8ee8ba0922cc88169c0578db20100000000ffffffff6efec42dd855e7dd9a99c1b97c1237a2d41f2db8e45f7cae2fc7060dacc3cb950000000000ffffffffa66d731e1d1064990e89bb71fe9193edc3d9b14a69ff782009eb69c32546066f0100000000ffffffff7eba53fe36f70feefdd5583527c804efed66b251d4a7675714318f300a50d77b0100000000ffffffff0255a002000000000017a9147160dd5948e215970a4dc814e36afdd726da5e7f87e2280000000000001600148cb69345e36dd1f9dd846f96b597e356ba28b8ca02483045022100de4c3ecb4c3ba5748fd36d0d3be95405a8154dc08c6076085a2ed052f83671230220706fd7c717cb30b13cf9d67532d13052f998e3b8d6859e6f45157ea2f8abd3ad012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e97580248304502210084ee9069f57bccba7320115beca5613e598dca2a32eb1fcafdd72253506d61800220779fb50200c22e428c29415ec08c4a847b63c2fd781833e558404862e5affcba012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975802483045022100e2f18e1eea013b298bfaa5aa01a6d19768e65591f74e881b79f028c7440d2e670220299602e6199a0bdcd41b0a9cdb06a0b62c46de0e1ca09d3f2a5fc99ef629caae012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975802473044022064795c2f8c5c13f9c470c6d7f044295d985f0f6b78cbd88f29334ac10a679bba022078c5d62c473dbfee85c581d517ca244e0e1512008d4e05ac76f31aa95b2c8c30012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e97580247304402201348baccd828de9febd36621f799eeaa12b46983fbbc682d966f2fd2e1ec641a02200d568778a46be55362d50c5ec29b5e8d4f9958a8bcba091298604e21d932dfbf012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975802483045022100b1e916a58a00f692f3591d936672f62ff8055b0ca23eaf14ad6e116f6189577a02202135df6bbc464eb12895ee51ddc2a607ad220ea17471e80d0652e8e8494ca954012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e9758024730440220137985a61b6988f5f766ad99e984b54d6e3959578a617f5ab496abd5ce6506a6022062ced3931f2691a26be145f36a7e71c23f9422a7f302d274c18c422b5f19f0cf012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975802483045022100a3c93333b71ef27edb4aa90fe057e175cb62326f42853a4a5fada70e6d8f02b902203ae592c99507ebcb20c6b51497238821f145c8b2e8ecec2373b0ba16194b69d4012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975802483045022100e3ac0d49bb02e106902a21a263504c63e521aa0741e62e8a38ce4384a9b5e26602207de4440a25d5c74a5f7ad8b2420b03430a0c17946d8340c9926578eedb195669012102ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e975800000000';
+
+const totalInputValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
+
 const gasFees = 800;
-const amount = utxo.value - gasFees;
-console.log('amount ->', amount);
+const amountToSend = 172117 - gasFees;
+
+console.log('Total Inputs (sats):', totalInputValue);
+console.log('Amount to Send (sats):', amountToSend);
 
 /////Creating the transaction
 const psbt = new bitcoin.Psbt({ network: TESTNET });
 
 // Add the input (UTXO)
-psbt.addInput({
-	hash: utxo.txid,
-	index: utxo.vout,
-	nonWitnessUtxo: Buffer.from(
-		'02000000000101169444dedbf562337d1ad2c4ef8f35f3b4caf5c2fb978b2d61dca87cc99045400000000000ffffffff023b4300000000000017a91414badee1c79ae22bf2724e0cef6f64af7015fdd7878a900000000000002251208dec550f3a6b14a4cd29a3aacc4bf8a6ba12f759f7755ca63bc7fe43bae66d190140d744b7b1d4d9b6b3aedde1c5f80448a137c3665dc45b0f476103453b12cec952e2fd59e299931d13cf86bac0f20eda999735e072f3c159a0b1e923a90484dbe500000000',
-		'hex',
-	),
-	redeemScript: initHtclRedeemScript,
-});
 
+// Add all UTXOs with redeemScript
+// utxos.forEach((utxo) => {
+// 	psbt.addInput({
+// 		hash: txid,
+// 		index: utxo.vout,
+// 		nonWitnessUtxo: Buffer.from(previousTxHex, 'hex'),
+// 		redeemScript: initHtclRedeemScript, // ✅ Include redeemScript here
+// 	});
+// });
+
+psbt.addInput({
+	hash: txid,
+	index: 0,
+	nonWitnessUtxo: Buffer.from(previousTxHex, 'hex'),
+	redeemScript: initHtclRedeemScript, // ✅ Include redeemScript here
+});
 /**
  *
  *
@@ -137,58 +161,21 @@ psbt.addInput({
 
 psbt.addOutput({
 	address: recipientAddress,
-	value: amount, // Amount to send (in sats)
+	value: amountToSend, // Amount to send (in sats)
 });
 
-/////Signing the transaction using Unisat
-console.log('Unsigned PSBT:', psbt.toBase64());
-//Use the pbt.toBase64() to sign with Unisat
+psbt.signInput(0, grynvault);
 
-const signed =
-	'70736274ff0100520200000001953fcdf8f2191d900fd10a2ba8006793fe842f967ee1c02981d8defa4c202d0a0000000000ffffffff011b400000000000001600148cb69345e36dd1f9dd846f96b597e356ba28b8ca00000000000100c202000000000101169444dedbf562337d1ad2c4ef8f35f3b4caf5c2fb978b2d61dca87cc99045400000000000ffffffff023b4300000000000017a91414badee1c79ae22bf2724e0cef6f64af7015fdd7878a900000000000002251208dec550f3a6b14a4cd29a3aacc4bf8a6ba12f759f7755ca63bc7fe43bae66d190140d744b7b1d4d9b6b3aedde1c5f80448a137c3665dc45b0f476103453b12cec952e2fd59e299931d13cf86bac0f20eda999735e072f3c159a0b1e923a90484dbe500000000220202ddc59466da05af6e1d64d5009cfd1069bc1e8dba743ac4616875ff71f81e9758473044022035fc0de3684ad1b87f59e95138271f044abd82a7964074105ba7562ec609334c022039b84a407d337c229b5b7110084f3a5627ae6ecf0032bf9ad0a5e7df117e7aff010104736304d074da67b1752103fc4fb7d6afbf0c95d314314950087a94df7a97973e2f7c7b757b8f721ac764edac67a8207817ded1e17cd65a5ce3c678bfce2461213b43272c4b77426558c6fe8f3726c58821036617e61ead19cf1697fb4a1081f640c5b335cdbb3a6e6c8ad4dcd55c37193052ac680000'; //Signed with Unisat
-const signedPsbt = bitcoin.Psbt.fromHex(signed);
-const inputIndex = 0; // Assuming single input
-const partialSig = signedPsbt.data.inputs[inputIndex].partialSig[0].signature;
-console.log('Extracted Signature:', partialSig.toString('hex'));
-
-psbt.finalizeInput(0, (inputIndex, input) => {
+psbt.finalizeInput(0, (index, input) => {
+	const sig = input.partialSig[0].signature;
 	const scriptSig = bitcoin.payments.p2sh({
-		redeem: { output: initHtclRedeemScript, input: bitcoin.script.compile([partialSig, firstPreimage, bitcoin.opcodes.OP_TRUE]) },
+		redeem: {
+			output: initHtclRedeemScript,
+			input: bitcoin.script.compile([sig, firstPreimage, bitcoin.opcodes.OP_FALSE]),
+		},
 	});
-
-	return {
-		finalScriptSig: scriptSig.input, // Manually set the scriptSig
-	};
+	return { finalScriptSig: scriptSig.input };
 });
-
-/**
- *
- *
- * Ouput for Borrower on Path 2
- *
- *
- *
- * */
-
-// psbt.addOutput({
-// 	address: recipientAddress,
-// 	value: amount, // Amount to send (in sats)
-// });
-
-// psbt.signInput(0, grynvault);
-
-// psbt.finalizeInput(0, (inputIndex, input) => {
-// 	const scriptSig = bitcoin.payments.p2sh({
-// 		redeem: {
-// 			output: initHtclRedeemScript,
-// 			input: bitcoin.script.compile([psbt.data.inputs[inputIndex].partialSig[0].signature, , firstPreimage, bitcoin.opcodes.OP_FALSE]),
-// 		},
-// 	});
-
-// 	return {
-// 		finalScriptSig: scriptSig.input, // Manually set the scriptSig
-// 	};
-// });
 
 ////To be broadcast
 console.log('Final TX Hex:', psbt.extractTransaction().toHex());
